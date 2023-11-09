@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
 project(easmx)
-# set(CMAKE_C_STANDARD 11)
 
 add_library(easmx STATIC
     src/main.c
