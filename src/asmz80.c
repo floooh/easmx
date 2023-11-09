@@ -194,7 +194,7 @@ int IXOffset()
 }
 
 
-inline int DDFD(int reg)
+static inline int DDFD(int reg)
 {
     if (reg == reg_IX)
         return 0xDD;

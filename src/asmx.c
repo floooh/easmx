@@ -773,7 +773,7 @@ u_int EvalDec(char *decStr)
 }
 
 
-int Hex2Dec(c)
+int Hex2Dec(int c)
 {
     c = toupper(c);
     if (c > '9')
@@ -1255,6 +1255,7 @@ void GetFName(char *word)
     if (quote)
     {
         if (*linePtr == quote)
+            // FIXME FLOH: expression result unused warning is NOT A BUG!
             *linePtr++;
         else
             Error("Missing close quote");
@@ -1486,7 +1487,7 @@ MacroPtr NewMacro(char *name)
 
     return p;
 }
-    
+
 
 MacroPtr AddMacro(char *name)
 {
@@ -1498,7 +1499,7 @@ MacroPtr AddMacro(char *name)
 
     return p;
 }
-    
+
 
 void AddMacroParm(MacroPtr macro, char *name)
 {
@@ -1893,7 +1894,7 @@ OpcdPtr GetFindOpcode(char *opcode, int *typ, int *parm, MacroPtr *macro)
     }
 if (pass == 2 && !strcmp(opcode,"FROB"))
 {
-    printf("*** FROB typ=%d, parm=%d, macro=%.8X, p=%.8X\n",*typ,*parm,(int) macro,(int) p);
+    printf("*** FROB typ=%d, parm=%d, macro=%p, p=%p\n",*typ,*parm,macro,p);
 }
 
     return p;
@@ -2744,7 +2745,7 @@ void write_srec(u_long addr, u_char *buf, u_long len, int rectype)
             break;
 
         case 28:
-            fprintf(object,"S%d%.2lX%.6lX", i, len+4, addr & 0xFFFFFF) + 1;
+            fprintf(object,"S%d%.2lX%.6lX", i, len+4, addr & 0xFFFFFF) + 1; // FIXME FLOH: does the +1 belong to the next line?
             chksum = chksum + ((addr >> 16) & 0xFF);
             break;
 

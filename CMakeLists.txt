@@ -21,3 +21,8 @@ add_executable(asmx
     src/asmz80.c
 )
 target_compile_definitions(asmx PUBLIC VERSION="2.0b5")
+if(MSVC)
+  target_compile_options(asmx PRIVATE /W4 /WX)
+else()
+  target_compile_options(asmx PRIVATE -Wall -Wextra -Wno-sign-compare -Wno-unused-value -Wno-unused-but-set-variable -Wno-unused-parameter)
+endif()
