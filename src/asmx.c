@@ -5473,7 +5473,7 @@ void getopts(int argc, char * const argv[])
 }
 
 
-int main(int argc, char * const argv[])
+int asmx_main(int argc, char * const argv[])
 {
     int i;
 

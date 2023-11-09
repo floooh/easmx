@@ -138,6 +138,8 @@ char * ListByte(char *p, u_char b);
 //char * ListAddr(char *p,u_long addr);
 //char * ListLoc(u_long addr);
 
+int asmx_main(int argc, char * const argv[]);
+
 // various internal variables used by the assemblers
 extern  bool            errFlag;            // TRUE if error occurred this line
 extern  int             pass;               // Current assembler pass

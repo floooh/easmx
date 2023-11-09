@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 project(easmx)
 # set(CMAKE_C_STANDARD 11)
 
-add_executable(asmx
+add_library(easmx STATIC
+    src/main.c
     src/asm1802.c
     src/asm6502.c
     src/asm6805.c
@@ -20,9 +21,12 @@ add_executable(asmx
     src/asmx.c
     src/asmz80.c
 )
-target_compile_definitions(asmx PUBLIC VERSION="2.0b5")
+target_compile_definitions(easmx PUBLIC VERSION="2.0b5")
 if(MSVC)
-  target_compile_options(asmx PRIVATE /W4 /WX)
+  target_compile_options(easmx PRIVATE /W4 /WX)
 else()
-  target_compile_options(asmx PRIVATE -Wall -Wextra -Wno-sign-compare -Wno-unused-value -Wno-unused-but-set-variable -Wno-unused-parameter)
+  target_compile_options(easmx PRIVATE -Wall -Wextra -Wno-sign-compare -Wno-unused-value -Wno-unused-but-set-variable -Wno-unused-parameter)
 endif()
+
+add_executable(asmx src/main.c)
+target_link_libraries(asmx easmx)
