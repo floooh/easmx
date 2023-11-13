@@ -1,0 +1,48 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": { "major": 3, "minor": 26, "patch": 0 },
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Native",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/native"
+        },
+        {
+            "name": "wasi",
+            "displayName": "WASI",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/wasi",
+            "toolchainFile": "${sourceDir}/wasisdk/share/cmake/wasi-sdk.cmake",
+            "cacheVariables": {
+                "WASI_SDK_PREFIX": "${sourceDir}/wasisdk"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "native_debug",
+            "displayName": "Debug",
+            "configurePreset": "default",
+            "configuration": "Debug"
+        },
+        {
+            "name": "native_release",
+            "displayName": "Release",
+            "configurePreset": "default",
+            "configuration": "Release"
+        },
+        {
+            "name": "wasi_debug",
+            "displayName": "Debug",
+            "configurePreset": "wasi",
+            "configuration": "Debug"
+        },
+        {
+            "name": "wasi_release",
+            "displayName": "Release",
+            "configurePreset": "wasi",
+            "configuration": "Release"
+        }
+    ]
+}

@@ -6,7 +6,7 @@ function testit()
 {
    echo -n "Testing $1:"
 
-   ../build/asmx -l -o -w -e -C $1 $1.asm >/dev/null 2>&1
+   ../build/native/Debug/asmx -l -o -w -e -C $1 $1.asm >/dev/null 2>&1
 
    diff -q $1.asm.hex ref/$1.asm.hex
 
