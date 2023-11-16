@@ -178,7 +178,6 @@ bool            xferFound;          // TRUE if xfer addr defined w/ END
 Str255          cl_SrcName;         // Source file name
 Str255          cl_ListName;        // Listing file name
 Str255          cl_ObjName;         // Object file name
-Str255          cl_IncRoot;         // Include root path
 bool            cl_Err;             // TRUE for errors to screen
 bool            cl_Warn;            // TRUE for warnings to screen
 bool            cl_List;            // TRUE to generate listing file
@@ -216,6 +215,13 @@ int             wordDiv;            // scaling factor for current word size
 int             addrMax;            // maximum addrWid used
 OpcdPtr         opcdTab;            // current CPU's opcode table
 Str255          defCPU;             // default CPU name
+
+//==> FLOOOH CHANGES
+bool            cl_Map;             // TRUE if generate debug map file
+Str255          cl_IncRoot;         // Include root path
+Str255          cl_MapName;         // Debug Map file name
+FILE            *map;               // map output file
+//==< FLOOOH CHANGES
 
 // --------------------------------------------------------------
 
@@ -925,17 +931,32 @@ char * ListAddr(char *p,u_long addr)
     return p;
 }
 
+//==> FLOOOH CHANGES
+void WriteSourceMapLocation(u_long addr) {
+    if (cl_Map && map) {
+        char* name = cl_SrcName;
+        int line = linenum;
+        if (nInclude >= 0) {
+            name = incname[nInclude];
+            line = incline[nInclude];
+        }
+        // print directly to map file
+        fprintf(map, "%s:%d:0x%lX\n", name, line, addr);
+    }
+}
+
 char * ListLoc(u_long addr)
 {
-    char *p;
-
-    p = ListAddr(listLine,addr);
+    WriteSourceMapLocation(addr);
+    char *p = listLine;
+    p = ListAddr(p, addr);
     *p++ = ' ';
     if (listWid == LIST_24 && addrWid == ADDR_16)
         *p++ = ' ';
 
     return p;
 }
+//==< FLOOOH CHANGES
 
 // --------------------------------------------------------------
 // ZSCII conversion routines
@@ -5243,6 +5264,7 @@ void usage(void)
     fprintf(stderr, "    -l [filename]       make a listing file, default is srcfile.lst\n");
     fprintf(stderr, "    -o [filename]       make an object file, default is srcfile.hex or srcfile.s9\n");
     //==> FLOOOH CHANGES
+    fprintf(stderr, "    -m [filename]       make a debug map file, default is srcfile.map\n");
     fprintf(stderr, "    -i [dir]            optional root path for include and incbin\n");
     //==< FLOOOH CHANGES
     fprintf(stderr, "    -d label[[:]=value] define a label, and assign an optional value\n");
@@ -5271,7 +5293,7 @@ void getopts(int argc, char * const argv[])
     int     token;
     int     neg;
 
-    while ((ch = getopt(argc, argv, "ew19tb:cd:l:o:i:s:C:?")) != -1)
+    while ((ch = getopt(argc, argv, "ew19tb:cd:l:m:o:i:s:C:?")) != -1)
     {
         errFlag = FALSE;
         switch (ch)
@@ -5401,6 +5423,18 @@ void getopts(int argc, char * const argv[])
                 strncpy(cl_ListName, optarg, 255);
                 break;
 
+            //==> FLOOOH CHANGES
+            case 'm':
+                cl_Map = TRUE;
+                if (optarg[0] == '-')
+                {
+                    optarg = "";
+                    optind--;
+                }
+                str255_strcpy(cl_MapName, optarg);
+                break;
+            //==< FLOOOH CHANGES
+
             case 'o':
                 if (cl_Stdout)
                 {
@@ -5472,6 +5506,13 @@ void getopts(int argc, char * const argv[])
         strcat (cl_ListName, ".lst");
     }
 
+    //==> FLOOOH CHANGES
+    if (cl_Map && cl_MapName[0] == 0) {
+        str255_strcpy(cl_MapName, cl_SrcName);
+        str255_strcat(cl_MapName, ".map");
+    }
+    //==< FLOOOH CHANGES
+
     if (cl_Obj  && cl_ObjName [0] == 0)
     {
         switch(cl_ObjType)
@@ -5539,7 +5580,10 @@ int asmx_main(int argc, char * const argv[])
     cl_SrcName [0] = 0;     source  = NULL;
     cl_ListName[0] = 0;     listing = NULL;
     cl_ObjName [0] = 0;     object  = NULL;
+    //==> FLOOOH CHANGES
+    cl_MapName[0]  = 0;     map     = NULL;
     cl_IncRoot [0] = 0;
+    //==< FLOOOH CHANGES
     incbin = NULL;
 
     AsmInit();
@@ -5566,6 +5610,16 @@ int asmx_main(int argc, char * const argv[])
             exit(1);
         }
     }
+
+    //==> FLOOOH CHANGES
+    if (cl_Map) {
+        map = fopen(cl_MapName, "w");
+        if (map == NULL) {
+            fprintf(stderr, "Unable to create map output file '%s'!\n", cl_MapName);
+            exit(1);
+        }
+    }
+    //==< FLOOOH CHANGES
 
     if (cl_Stdout)
     {
@@ -5607,6 +5661,8 @@ int asmx_main(int argc, char * const argv[])
         fclose(source);
     if (listing)
         fclose(listing);
+    if (map)
+        fclose(map);
     if (object && object != stdout)
         fclose(object);
 
