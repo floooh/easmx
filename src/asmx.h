@@ -25,6 +25,17 @@ typedef unsigned char  bool;    // define a bool type
 enum { FALSE = 0, TRUE = 1 };
 typedef char Str255[256];       // generic string type
 
+//==> FLOOOH CHANGES
+static inline void str255_strcpy(Str255 dst, const char* src) {
+    strncpy(dst, src, sizeof(Str255));
+    dst[sizeof(Str255) - 1] = 0;
+}
+static inline void str255_strcat(Str255 dst, const char* src) {
+    strncat(dst, src, sizeof(Str255));
+    dst[sizeof(Str255) - 1] = 0;
+}
+//==< FLOOOH CHANGES
+
 #define maxOpcdLen  11          // max opcode length (for building opcode table)
 typedef char OpcdStr[maxOpcdLen+1];
 struct OpcdRec

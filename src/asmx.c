@@ -178,6 +178,7 @@ bool            xferFound;          // TRUE if xfer addr defined w/ END
 Str255          cl_SrcName;         // Source file name
 Str255          cl_ListName;        // Listing file name
 Str255          cl_ObjName;         // Object file name
+Str255          cl_IncRoot;         // Include root path
 bool            cl_Err;             // TRUE for errors to screen
 bool            cl_Warn;            // TRUE for warnings to screen
 bool            cl_List;            // TRUE to generate listing file
@@ -1255,13 +1256,24 @@ void GetFName(char *word)
     if (quote)
     {
         if (*linePtr == quote)
-            // FIXME FLOH: expression result unused warning is NOT A BUG!
+            //==> FLOOOH FIXME: expression result unused warning is NOT A BUG!
             *linePtr++;
         else
             Error("Missing close quote");
     }
 }
 
+//==> FLOOOH CHANGES
+void GetIncludeFName(Str255 word) {
+    word[0] = 0;
+    Str255 fname = {0};
+    GetFName(fname);
+    if (cl_IncRoot[0]) {
+        str255_strcpy(word, cl_IncRoot);
+    }
+    str255_strcat(word, fname);
+}
+//==< FLOOOH CHANGES
 
 bool Expect(char *expected)
 {
@@ -3365,7 +3377,9 @@ int OpenInclude(char *fname)
     nInclude++;
     include[nInclude] = NULL;
     incline[nInclude] = 0;
-    strcpy(incname[nInclude],fname);
+    //==> FLOOOH CHANGES
+    str255_strcpy(incname[nInclude], fname);
+    //==< FLOOOH CHANGES
     include[nInclude] = fopen(fname, "r");
     if (include[nInclude])
         return 1;
@@ -4106,7 +4120,7 @@ void DoOpcode(int typ, int parm)
             break;
 
         case o_Include:
-            GetFName(word);
+            GetIncludeFName(word);
 
             switch(OpenInclude(word))
             {
@@ -4406,10 +4420,15 @@ void DoLabelOp(int typ, int parm, char *labl)
 #endif
                     {
                         token = GetWord(labl);
+                        //==> FLOOH CHANGE: fix indentation and add curly braces (fixes -Wmisleading-indentation)
                         if (token)
+                        {
                             showAddr = TRUE;
-                            while (*linePtr == ' ' || *linePtr == '\t')
-                                linePtr++;
+                        }
+                        while (*linePtr == ' ' || *linePtr == '\t')
+                        {
+                            linePtr++;
+                        }
 
                         if (labl[0])
                         {
@@ -4688,7 +4707,7 @@ void DoLabelOp(int typ, int parm, char *labl)
        case o_Incbin:
             DefSym(labl,locPtr,FALSE,FALSE);
 
-            GetFName(word);
+            GetIncludeFName(word);
 
             val = 0;
 
@@ -5223,6 +5242,9 @@ void usage(void)
 //  fprintf(stderr, "    -1                  output listing during first pass\n");
     fprintf(stderr, "    -l [filename]       make a listing file, default is srcfile.lst\n");
     fprintf(stderr, "    -o [filename]       make an object file, default is srcfile.hex or srcfile.s9\n");
+    //==> FLOOOH CHANGES
+    fprintf(stderr, "    -i [dir]            optional root path for include and incbin\n");
+    //==< FLOOOH CHANGES
     fprintf(stderr, "    -d label[[:]=value] define a label, and assign an optional value\n");
 //  fprintf(stderr, "    -9                  output object file in Motorola S9 format (16-bit address)\n");
     fprintf(stderr, "    -s9                 output object file in Motorola S9 format (16-bit address)\n");
@@ -5249,7 +5271,7 @@ void getopts(int argc, char * const argv[])
     int     token;
     int     neg;
 
-    while ((ch = getopt(argc, argv, "ew19tb:cd:l:o:s:C:?")) != -1)
+    while ((ch = getopt(argc, argv, "ew19tb:cd:l:o:i:s:C:?")) != -1)
     {
         errFlag = FALSE;
         switch (ch)
@@ -5394,6 +5416,13 @@ void getopts(int argc, char * const argv[])
                 strncpy(cl_ObjName, optarg, 255);
                 break;
 
+            //==> FLOOOH CHANGES
+            case 'i':
+                str255_strcpy(cl_IncRoot, optarg);
+                str255_strcat(cl_IncRoot, "/");
+                break;
+            //==< FLOOOH CHANGES
+
             case 'C':
                 strncpy(word, optarg, 255);
                 Uprcase(word);
@@ -5510,6 +5539,7 @@ int asmx_main(int argc, char * const argv[])
     cl_SrcName [0] = 0;     source  = NULL;
     cl_ListName[0] = 0;     listing = NULL;
     cl_ObjName [0] = 0;     object  = NULL;
+    cl_IncRoot [0] = 0;
     incbin = NULL;
 
     AsmInit();
