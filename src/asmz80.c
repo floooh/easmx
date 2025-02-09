@@ -1444,6 +1444,7 @@ int Z80_DoCPULabelOp(int typ, int parm, char *labl)
         case o_Bit:
             oldLine = linePtr;
             reg1 = Eval();                  // get bit number
+            if (reg1 > 7 || reg1 < 0) { IllegalOperand(); break; }
             token = GetWord(word);          // attempt to get comma
             // if end of line and SET opcode
             if (token == 0 && parm == 0xC0)
